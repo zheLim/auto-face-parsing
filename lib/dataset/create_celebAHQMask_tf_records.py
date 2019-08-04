@@ -24,7 +24,7 @@ def _int64_feature(value):
 def  image_example(image, mask):
     # input image must be in jpeg format
     image_shape = image.shape
-    image_string = cv2.imencode('.jpg', image)[1].tostring()
+    image_string = cv2.imencode('.jpeg', image)[1].tostring()
     mask_string = cv2.imencode('.png', mask)[1].tostring()
     feature = {
         'height': _int64_feature(image_shape[0]),
@@ -49,7 +49,7 @@ class CelebAMaskHQ(Dataset):
 
         :param root:
         """
-        self.mask_type = ['hair', 'l_brow', 'r_brow', 'l_eye', 'r_eye', 'l_lip', 'r_lip', 'mouth', 'neck', 'nose']
+        self.mask_type = ['hair', 'l_brow', 'r_brow', 'l_eye', 'r_eye', 'l_lip', 'r_lip', 'mouth', 'neck', 'nose', 'skin']
         self.img_indexs = list(range(30000)) # 30k images in dataset
         self.img_folder = os.path.join(root, 'CelebA-HQ-img')
         self.mask_folder = os.path.join(root, 'CelebAMask-HQ-mask-anno')
@@ -64,8 +64,8 @@ class CelebAMaskHQ(Dataset):
         image = cv2.imread(img_pth)
 
         mask = np.zeros((512, 512), dtype=np.uint8)
-        for label_idx, m_name in enumerate(self.mask_type):
-            filename = '%.5d_%s.png'.format(idx, m_name)
+        for label_idx, m_name in enumerate(self.mask_type, start=1):
+            filename = '%.5d_%s.png'%(idx, m_name)
             # some part of annotations may not exist
             if filename in self.mask_filenames:
                 # read gray image
@@ -80,7 +80,7 @@ class CelebAMaskHQ(Dataset):
 def main():
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('--dataset_path', type=str, help='Path to celebAMask-HQ dataset root directory', required=True)
-    parser.add_argument('--tf_record_save_path',  default='/home/data/celebAMask-HQ-tfrecord',type=str)
+    parser.add_argument('--tf_record_save_path',  default='/data1/linzhe/data/celebAMask-HQ-tfrecord',type=str)
 
     args = parser.parse_args()
 
