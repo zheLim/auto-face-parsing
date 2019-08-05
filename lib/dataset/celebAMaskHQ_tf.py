@@ -3,7 +3,7 @@ import os
 import cv2
 import numpy as np
 from imgaug import augmenters as iaa
-
+from functools import partial
 image_feature_description = {
     'height': tf.FixedLenFeature([], tf.int64),
     'width': tf.FixedLenFeature([], tf.int64),
@@ -15,19 +15,24 @@ image_feature_description = {
 
 
 def _parse_image_function(example_proto):
-    return tf.parse_single_example(example_proto, image_feature_description)
+    return
 
-def get_tf_dataset(tf_folder):
+def get_tf_dataset(tf_folder, policy):
     tf_record_files = [os.path.join(tf_folder, fname) for fname in os.listdir(tf_folder)]
     dataset = tf.data.TFRecordDataset(filenames=[tf_record_files])
+    dataset = dataset.map(parse_example)
+    preprocess_fn = get_augmentation(policy)
+    def tf_preprocessing(image, mask):
+        image, mask = tf.py_function(preprocess_fn, [image, mask], [np.uint8, np.uint8])
+        return image, mask
+    dataset = dataset.map(tf_preprocessing)
+    return dataset
 
-def preprocessing_pyfn(features, augmentation):
+def parse_example(example_proto):
+    features = tf.parse_single_example(example_proto, image_feature_description)
     image = tf.image.decode_jpeg(features['image_raw'])
     mask  = tf.image.decode_png(features['mask_raw'])
-
-    [image, mask] = tf.py_function(random_rotate_scale_crop, [image, mask], [tf.float32])
-    for (func, parameter) in augmentation:
-        image = func(image, *parameter)
+    return image, mask
 
 def get_augmentation(policy):
     """
@@ -35,9 +40,24 @@ def get_augmentation(policy):
     :param policy:
     :return:
     """
+    scale = policy['scale']
+    random_scale_fn = partial(random_scale, max_scale=scale)
+    is_rot, max_rot = policy['rotation']
+    if not is_rot:
+        max_rot = None
+    else:
+        max_rot = (max_rot-0.5)*np.pi  # [-0.5pi, 0.5pi]
+    is_rand_crop, center_ratio = policy['crop']
+    if not is_rand_crop:
+        center_ratio = None
+    else:
+        center_ratio = center_ratio-0.5
+
+    random_rotate_crop_fn = partial(random_rotate_crop, max_angle=max_rot, center_ratio=center_ratio)
+
     iaa_policy = policy['iaa']
     augmentation = []
-    for aug_type, magnitude in policy.items():
+    for aug_type, magnitude in iaa_policy.items():
         if aug_type == "gaussian-blur":
             augmentation.append(iaa.GaussianBlur(sigma=(0, magnitude * 25.0)))
         elif aug_type == "shear":
@@ -76,8 +96,14 @@ def get_augmentation(policy):
             augmentation.append(iaa.Grayscale(alpha=(0.0, magnitude)))
         else:
             raise ValueError
+    iaa_aug = iaa.Sequential(augmentation)
 
-    return iaa.Sequential(augmentation)
+    def preprocessing(image, mask):
+        image, mask = random_scale_fn(image, mask)
+        image, mask = iaa_aug(image=image, segmentation_maps=mask)
+        image, mask = random_rotate_crop_fn(image, mask)
+        return image, mask
+    return preprocessing
 
 def random_scale(image, mask, output_size, max_scale=None):
     out_h, out_w = output_size
@@ -140,7 +166,7 @@ def rotate_scale_crop(image, mask, angle, output_size, center_ratio):
     return crop_image, crop_mask
 
 
-def random_rotate_scale_crop(image, mask, output_size, angle_ratio=None, center_ratio=None):
+def random_rotate_crop(image, mask, output_size, angle_ratio=None, center_ratio=None):
     angle = 0
     if angle_ratio is not None:
         angle = np.random.uniform(0, angle_ratio) * np.pi - np.pi / 2
@@ -153,3 +179,7 @@ def random_rotate_scale_crop(image, mask, output_size, angle_ratio=None, center_
     crop_img, crop_mask = rotate_scale_crop(image, mask, angle, output_size, center_ratio)
 
     return crop_img, crop_mask
+
+
+if __name__ == '__main__':
+    get_tf_dataset(tf_folder, policy)
