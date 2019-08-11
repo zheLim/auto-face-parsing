@@ -3,17 +3,17 @@
 # https://docs.nvidia.com/deeplearning/sdk/dali-developer-guide/docs/examples/dataloading_tfrecord.html?highlight=tfrecord2idx
 import tensorflow as tf
 import argparse
-import torch
 import numpy as np
 import os
 import cv2
 import shutil
 from math import ceil
-from torch.utils.data import Dataset
 from subprocess import call
+
 
 def _bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
 
 def _float_feature(value):
     return tf.train.Feature(float_list=tf.train.FloatList(value=[value]))
@@ -36,7 +36,7 @@ def  image_example(image, mask):
 
     return tf.train.Example(features=tf.train.Features(feature=feature))
 
-class CelebAMaskHQ(Dataset):
+class CelebAMaskHQ(object):
     def __init__(self, root):
         """
         The dataset is organized as
@@ -49,7 +49,10 @@ class CelebAMaskHQ(Dataset):
 
         :param root:
         """
-        self.mask_type = ['hair', 'l_brow', 'r_brow', 'l_eye', 'r_eye', 'l_lip', 'r_lip', 'mouth', 'neck', 'nose', 'skin']
+        # Order is important. Inappropriate order would cause label occlusion.
+        self.mask_type = ['skin', 'nose', 'eye_g', 'l_eye', 'r_eye', 'l_brow', 'r_brow', 'l_ear', 'r_ear', 'mouth',
+                          'u_lip', 'l_lip', 'hair', 'hat', 'ear_r', 'neck_l', 'neck', 'cloth']
+
         self.img_indexs = list(range(30000)) # 30k images in dataset
         self.img_folder = os.path.join(root, 'CelebA-HQ-img')
         self.mask_folder = os.path.join(root, 'CelebAMask-HQ-mask-anno')
@@ -71,6 +74,8 @@ class CelebAMaskHQ(Dataset):
                 # read gray image
                 this_mask = cv2.imread(os.path.join(self.mask_folder, filename), 0)
                 mask[this_mask != 0] = label_idx
+
+
         # Assuming there exist one mask file.
         return image, mask
 
@@ -79,8 +84,8 @@ class CelebAMaskHQ(Dataset):
 
 def main():
     parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('--dataset_path', type=str, help='Path to celebAMask-HQ dataset root directory', required=True)
-    parser.add_argument('--tf_record_save_path',  default='/data1/linzhe/data/celebAMask-HQ-tfrecord',type=str)
+    parser.add_argument('--dataset_path', type=str, default='/home/linzhe/data/CelebAMask-HQ')
+    parser.add_argument('--tf_record_save_path',  default='/home/linzhe/data/celebAMask-HQ-tfrecord',type=str)
 
     args = parser.parse_args()
 
@@ -129,7 +134,7 @@ def main():
         os.mkdir('%s/idx_files'%current_save_path)
         for shard_idx in range(total_shards):
             tfrecord_filename = '%s/tfrecord/%.2d-of-%.2d' % (current_save_path, shard_idx, total_shards)
-            with tf.python_io.TFRecordWriter(tfrecord_filename) as writer:
+            with tf.io.TFRecordWriter(tfrecord_filename) as writer:
                 for subscript in range(shard_idx * number_per_shard, (shard_idx + 1) * number_per_shard):
                     if subscript > n_train_exmaples - 1:
                         break
@@ -138,8 +143,8 @@ def main():
                     writer.write(tf_example.SerializeToString())
 
 
-            tf_idx = '%s/idx_files/%.2d-of-%.2d.idx' % (current_save_path, shard_idx, total_shards)
-            call([tfrecord2idx_script, tfrecord_filename, tf_idx])
+            # tf_idx = '%s/idx_files/%.2d-of-%.2d.idx' % (current_save_path, shard_idx, total_shards)
+            # call([tfrecord2idx_script, tfrecord_filename, tf_idx])
 
 
 if __name__ == '__main__':

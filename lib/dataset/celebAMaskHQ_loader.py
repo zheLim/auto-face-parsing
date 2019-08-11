@@ -72,3 +72,4 @@ def show_images(image_batch, masks, batch_size):
 
     plt.savefig('../../temp/data_test.jpg')
 
+
