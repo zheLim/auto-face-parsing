@@ -1,0 +1,46 @@
+{
+    "is_scale":{"_type":"choice","_value":[0, 1]},
+    "min_scale":{"_type":"uniform","_value":[0, 1]},
+    "max_scale":{"_type":"uniform","_value":[0, 1]},
+
+    "is_rot":{"_type":"choice","_value":[0, 1]},
+    "max_angle":{"_type":"uniform","_value":[0, 1]},
+
+    "center_crop":{"_type":"choice","_value":[0, 1]},
+    "crop_x":{"_type":"uniform","_value":[0, 1]},
+    "crop_y":{"_type":"uniform","_value":[0, 1]},
+
+    "padding_value":{"_type":"choice","_value":[0, 128]},
+
+    "aug_0":{"_type":"choice","_value":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]},
+    "magnitude_0":{"_type":"uniform","_value":[0, 1]},
+
+    "aug_1":{"_type":"choice","_value":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]},
+    "magnitude_1":{"_type":"uniform","_value":[0, 1]},
+
+    "aug_2":{"_type":"choice","_value":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]},
+    "magnitude_2":{"_type":"uniform","_value":[0, 1]},
+
+    "aug_3":{"_type":"choice","_value":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]},
+    "magnitude_3":{"_type":"uniform","_value":[0, 1]},
+
+    "aug_4":{"_type":"choice","_value":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]},
+    "magnitude_4":{"_type":"uniform","_value":[0, 1]},
+
+    "aug_5":{"_type":"choice","_value":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]},
+    "magnitude_5":{"_type":"uniform","_value":[0, 1]},
+
+    "aug_6":{"_type":"choice","_value":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]},
+    "magnitude_6":{"_type":"uniform","_value":[0, 1]},
+
+    "aug_7":{"_type":"choice","_value":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]},
+    "magnitude_7":{"_type":"uniform","_value":[0, 1]},
+
+    "aug_8":{"_type":"choice","_value":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]},
+    "magnitude_8":{"_type":"uniform","_value":[0, 1]},
+
+    "coarse_salt_pepper":{"_type":"choice","_value":[0, 1]},
+    "coarse_salt_pepper_magnitude_0":{"_type":"uniform","_value":[0, 1]},
+    "coarse_salt_pepper_magnitude_1":{"_type":"uniform","_value":[0, 1]}
+
+}
