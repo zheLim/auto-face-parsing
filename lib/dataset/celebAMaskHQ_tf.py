@@ -26,74 +26,111 @@ def parse_example(example_proto):
     return image, mask
 
 
-def get_augmentation(policy):
+def get_augmentation(params):
     """
     copy from https://github.com/barisozmen/deepaugment
-    :param policy:
+    :param params:
     :return:
     """
-    padding_value = policy['padding_value']
-    output_size = policy['output_size']
-    is_scale, min_scale, max_scale = policy['scale']
-    if not is_scale:
+    padding_value = params['PaddingValue']
+    output_size = params['output_size']
+
+    scale_params = params['Scale']
+    if 'disable' in scale_params:
         random_scale_fn = partial(random_scale, output_size=output_size)
     else:
+        min_scale = scale_params['min_scale']
+        max_scale = scale_params['max_scale']
+
         random_scale_fn = partial(random_scale, output_size=output_size, min_scale=min_scale, max_scale=max_scale)
 
-    is_rot, max_rot = policy['rotation']
-    if not is_rot:
-        max_rot = None
+    rot_params = params['Rotation']
+    if 'disable' in rot_params:
+        max_rot_angle = None
+    else:
+        max_rot_angle = rot_params['max_angle']
 
-    is_rand_crop, crop_x_ratio, crop_y_ratio = policy['crop']
-    if not is_rand_crop:
+    crop_params = params['Crop']
+    if 'disable' in crop_params:
         crop_x_ratio = None
         crop_y_ratio = None
+    else:
+        crop_x_ratio, crop_y_ratio = crop_params['crop_x'], crop_params['crop_y']
 
-    random_rotate_crop_fn = partial(random_rotate_crop, output_size=output_size, max_angle=max_rot,
+    random_rotate_crop_fn = partial(random_rotate_crop, output_size=output_size, max_angle=max_rot_angle,
                                     crop_x_ratio=crop_x_ratio, crop_y_ratio=crop_y_ratio, padding_value=padding_value)
 
     augmentation = []
-    for aug_type, magnitude in policy.items():
-        if aug_type == "gaussian-blur":
-            augmentation.append(iaa.GaussianBlur(sigma=(0, magnitude * 25.0)))
-        elif aug_type == "shear":
-            augmentation.append(iaa.Affine(shear=(-90 * magnitude, 90 * magnitude), cval=padding_value[0]))
-        elif aug_type == "horizontal-flip":
-            augmentation.append(iaa.Fliplr(magnitude))
-        elif aug_type == "vertical-flip":
-            augmentation.append(iaa.Flipud(magnitude))
-        elif aug_type == "sharpen":
-            augmentation.append(iaa.Sharpen(alpha=(0, 1.0), lightness=(0.50, 5 * magnitude)))
-        elif aug_type == "emboss":
-            augmentation.append(iaa.Emboss(alpha=(0, 1.0), strength=(0.0, 20.0 * magnitude)))
-        elif aug_type == "additive-gaussian-noise":
-            augmentation.append(iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, magnitude * 255), per_channel=0.5))
-        elif aug_type == "dropout":
-            augmentation.append(iaa.Dropout((0.01, magnitude*0.1), per_channel=0.5))
-        elif aug_type == "coarse-dropout":
-            augmentation.append(iaa.CoarseDropout((0.03, 0.15), size_percent=(0.30, np.log10(magnitude * 3)), per_channel=0.2))
-        elif aug_type == "gamma-contrast":
-            augmentation.append(iaa.GammaContrast((1-magnitude, 1.0+magnitude)))
-        elif aug_type == "brighten":
-            augmentation.append(iaa.Multiply((1-magnitude, 1.0+magnitude)))  # brighten
-        elif aug_type == "invert":
-            augmentation.append(iaa.Invert(p=magnitude)) # magnitude not used
-        elif aug_type == "fog":
-            augmentation.append(iaa.Fog()) # magnitude not used
-        elif aug_type == "clouds":
-            augmentation.append(iaa.Clouds())  # magnitude not used
-        elif aug_type == "super-pixels":  # deprecated
-            augmentation.append(iaa.Superpixels(p_replace=(0, magnitude), n_segments=(100, 100)))
-        elif aug_type == "elastic-transform":  # deprecated
-            augmentation.append(iaa.ElasticTransformation(alpha=(0.0, max(0., magnitude * 5)), sigma=0.25))
-        elif aug_type == "coarse-salt-pepper":
-            augmentation.append(iaa.CoarseSaltAndPepper(p=magnitude[0], size_percent=magnitude[1]))
-        elif aug_type == "grayscale":
-            augmentation.append(iaa.Grayscale(alpha=(0., magnitude)))
-        elif aug_type in ['scale', 'rotation', 'crop', 'output_size', 'padding_value']:
+    for aug_type, aug_parameters in params.items():
+        if 'disable' in aug_parameters:
             pass
+        elif aug_type in ['Scale', 'Rotation', 'Crop', 'output_size', 'PaddingValue']:
+            pass
+        elif aug_type == "Shear":
+            angle = aug_parameters['angle']
+            augmentation.append(iaa.Affine(shear=(-90 * angle, 90 * angle), cval=padding_value[0]))
+        elif aug_type == "HorizontalFlip":
+            augmentation.append(iaa.Fliplr(aug_parameters['probability']))
+        elif aug_type == "VerticalFlip":
+            augmentation.append(iaa.Flipud(aug_parameters['probability']))
+        elif aug_type == "gaussian-blur":
+            augmentation.append(iaa.GaussianBlur(sigma=(0, magnitude * 25.0)))
+        elif aug_type == "Brighten":
+            magnitude = aug_parameters['magnitude']
+            augmentation.append(iaa.Multiply((1-magnitude, 1.0+magnitude)))  # brighten
+        elif aug_type == "GammaContrast":
+            magnitude = aug_parameters['magnitude']
+            augmentation.append(iaa.GammaContrast((1-magnitude, 1.0+magnitude)))
+        elif aug_type == "Sharpen":
+            max_alpha = aug_parameters['max_alpha']
+            max_lightness = aug_parameters['max_lightness']
+            augmentation.append(iaa.Sharpen(alpha=(0, max_alpha), lightness=(0.50, max_lightness)))
+        elif aug_type == "Emboss":
+            max_alpha = aug_parameters['max_alpha']
+            max_strength = aug_parameters['max_strength']
+            augmentation.append(iaa.Emboss(alpha=(0, max_alpha), strength=(0.0, max_strength)))
+        elif aug_type == "MotionBlur":
+            min_kernel_size = aug_parameters['min_kernel_size']
+            interval = aug_parameters['interval']
+            max_angle = aug_parameters['max_angle']
+            augmentation.append(
+                iaa.Emboss(k=(int(min_kernel_size), int(min_kernel_size+interval)), angle=(0.0, max_angle))
+            )
+
+        elif aug_type == "fog" and aug_parameters:
+            augmentation.append(iaa.Fog())  # magnitude not used
+        elif aug_type == "clouds" and aug_parameters:
+            augmentation.append(iaa.Clouds())  # magnitude not used
+
+        elif aug_type == "ElasticTransformation":
+            max_alpha = aug_parameters['max_alpha']
+            sigma = aug_parameters['sigma']
+            augmentation.append(iaa.ElasticTransformation(alpha=(0.0, max_alpha), sigma=sigma))
+        elif aug_type == "SaltAndPepper":
+            probability = aug_parameters['probability']
+            per_channel_prob = aug_parameters['per_channel']
+            augmentation.append(iaa.SaltAndPepper(probability, per_channel=per_channel_prob))
+        elif aug_type == "CoarseSaltAndPepper":
+            probability = aug_parameters['probability']
+            size_percent = aug_parameters['size_percent ']
+            augmentation.append(iaa.CoarseSaltAndPepper(probability, size_percent=size_percent))
+
+        elif aug_type == "Dropout":
+            max_probability = aug_parameters['max_probability']
+            per_channel_prob = aug_parameters['per_channel_prob ']
+            augmentation.append(iaa.Dropout((0.01, max_probability), per_channel=per_channel_prob))
+        elif aug_type == "CoarseDropout":
+            max_probability = aug_parameters['max_probability']
+            size_percent = aug_parameters['size_percent']
+            augmentation.append(iaa.CoarseDropout((0.03, max_probability), size_percent=size_percent))
+
+        elif aug_type == "GrayScale":
+            max_alpha = aug_parameters['max_alpha']
+            augmentation.append(iaa.Grayscale(alpha=(0., max_alpha)))
+
         else:
             raise ValueError
+
     if len(augmentation) > 0:
         iaa_aug = iaa.Sequential(augmentation)
     else:

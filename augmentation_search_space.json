@@ -1,46 +1,223 @@
 {
-    "is_scale":{"_type":"choice","_value":[0, 1]},
-    "min_scale":{"_type":"uniform","_value":[0, 1]},
-    "max_scale":{"_type":"uniform","_value":[0, 1]},
+    "PaddingValue":{"_type":"choice","_value":[0, 128]},
 
-    "is_rot":{"_type":"choice","_value":[0, 1]},
-    "max_angle":{"_type":"uniform","_value":[0, 1]},
+    "Scale": {
+        "_type": "choice",
+        "_value": [
+            {
+                "disable": "True"
+            },
+            {
+                "min_scale": {"_type": "uniform",  "_value": [0, 1]},
+                "max_scale": {"_type": "uniform", "_value": [0, 1]}
+            }
+        ]
+    },
 
-    "center_crop":{"_type":"choice","_value":[0, 1]},
-    "crop_x":{"_type":"uniform","_value":[0, 1]},
-    "crop_y":{"_type":"uniform","_value":[0, 1]},
 
-    "padding_value":{"_type":"choice","_value":[0, 128]},
+    "Rotation": {
+        "_type": "choice",
+        "_value": [
+            {
+                "disable": "True"
+            },
+            {
+                "max_angle": {"_type": "uniform", "_value": [0, 1]}
+            }
+        ]
+    },
 
-    "aug_0":{"_type":"choice","_value":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]},
-    "magnitude_0":{"_type":"uniform","_value":[0, 1]},
+    "Crop": {
+        "_type": "choice",
+        "_value": [
+            {
+                "disable": "True"
+            },
+            {
+                "crop_x": {"_type": "uniform", "_value": [0, 1]},
+                "crop_y": {"_type": "uniform", "_value": [0, 1]}
+            }
+        ]
+    },
 
-    "aug_1":{"_type":"choice","_value":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]},
-    "magnitude_1":{"_type":"uniform","_value":[0, 1]},
+    "Shear": {
+        "_type": "choice",
+        "_value": [
+            {
+                "disable": "True"
+            },
+            {
+                "angle": {"_type": "uniform", "_value": [0, 1]}
+            }
+        ]
+    },
 
-    "aug_2":{"_type":"choice","_value":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]},
-    "magnitude_2":{"_type":"uniform","_value":[0, 1]},
+    "HorizontalFlip": {
+        "_type": "choice",
+        "_value": [
+            {
+                "disable": "True"
+            },
+            {
+                "probability": {"_type": "uniform", "_value": [0, 1]}
+            }
+        ]
+    },
 
-    "aug_3":{"_type":"choice","_value":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]},
-    "magnitude_3":{"_type":"uniform","_value":[0, 1]},
+    "VerticalFlip": {
+        "_type": "choice",
+        "_value": [
+            {
+                "disable": "True"
+            },
+            {
+                "probability": {"_type": "uniform", "_value": [0, 1]}
+            }
+        ]
+    },
 
-    "aug_4":{"_type":"choice","_value":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]},
-    "magnitude_4":{"_type":"uniform","_value":[0, 1]},
+    "Brighten": {
+        "_type": "choice",
+        "_value": [
+            {
+                "disable": "True"
+            },
+            {
+                "magnitude": {"_type": "uniform", "_value": [0, 1]}
+            }
+        ]
+    },
 
-    "aug_5":{"_type":"choice","_value":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]},
-    "magnitude_5":{"_type":"uniform","_value":[0, 1]},
+    "GammaContrast": {
+        "_type": "choice",
+        "_value": [
+            {
+                "disable": "True"
+            },
+            {
+                "magnitude": {"_type": "uniform", "_value": [0, 1]}
+            }
+        ]
+    },
 
-    "aug_6":{"_type":"choice","_value":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]},
-    "magnitude_6":{"_type":"uniform","_value":[0, 1]},
+    "Sharpen": {
+        "_type": "choice",
+        "_value": [
+            {
+                "disable": "True"
+            },
+            {
+                "max_alpha": {"_type": "uniform", "_value": [0, 1]},
+                "maxi_lightness": {"_type": "uniform", "_value": [0.5, 2]}
+            }
+        ]
+    },
 
-    "aug_7":{"_type":"choice","_value":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]},
-    "magnitude_7":{"_type":"uniform","_value":[0, 1]},
+    "Emboss": {
+        "_type": "choice",
+        "_value": [
+            {
+                "disable": "True"
+            },
+            {
+                "max_alpha": {"_type": "uniform", "_value": [0, 1]},
+                "max_strength": {"_type": "uniform", "_value": [0.5, 1.5]}
+            }
+        ]
+    },
 
-    "aug_8":{"_type":"choice","_value":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]},
-    "magnitude_8":{"_type":"uniform","_value":[0, 1]},
+    "MotionBlur": {
+        "_type": "choice",
+        "_value": [
+            {
+                "disable": "True"
+            },
+            {
+                "min_kernel_size": {"_type": "uniform", "_value": [1, 10]},
+                "interval": {"_type": "uniform", "_value": [1, 10]},
+                "max_angle": {"_type": "uniform", "_value": [0, 360]}
+            }
+        ]
+    },
 
-    "coarse_salt_pepper":{"_type":"choice","_value":[0, 1]},
-    "coarse_salt_pepper_magnitude_0":{"_type":"uniform","_value":[0, 1]},
-    "coarse_salt_pepper_magnitude_1":{"_type":"uniform","_value":[0, 1]}
+    "Fog": {"_type":"choice","_value":[0, 1]},
+    "Clouds": {"_type":"choice","_value":[0, 1]},
 
+    "ElasticTransformation": {
+        "_type": "choice",
+        "_value": [
+            {
+                "disable": "True"
+            },
+            {
+                "max_alpha": {"_type": "uniform", "_value": [0, 5]},
+                "sigma": {"_type": "uniform", "_value": [0, 1]}
+
+            }
+        ]
+    },
+
+    "SaltAndPepper": {
+        "_type": "choice",
+        "_value": [
+            {
+                "disable": "True"
+            },
+            {
+                "probability": {"_type": "uniform", "_value": [0, 1]},
+                "per_channel_prob": {"_type": "uniform", "_value": [0, 1]}
+            }
+        ]
+    },
+
+    "CoarseSaltAndPepper": {
+        "_type": "choice",
+        "_value": [
+            {
+                "disable": "True"
+            },
+            {
+                "probability": {"_type": "uniform", "_value": [0, 1]},
+                "size_percent": {"_type": "uniform", "_value": [0, 1]}
+            }
+        ]
+    },
+
+    "Dropout": {
+        "_type": "choice",
+        "_value": [
+            {
+                "disable": "True"
+            },
+            {
+                "max_probability": {"_type": "uniform", "_value": [0, 1]},
+                "per_channel_prob": {"_type": "uniform", "_value": [0, 1]}
+            }
+        ]
+    },
+
+    "CoarseDropout": {
+        "_type": "choice",
+        "_value": [
+            {
+                "disable": "True"
+            },
+            {
+                "max_probability": {"_type": "uniform", "_value": [0, 1]},
+                "size_percent": {"_type": "uniform", "_value": [0, 1]}
+            }
+        ]
+    },
+
+    "GrayScale": {
+        "_type": "choice",
+        "_value": [
+            {
+                "disable": "True"
+            },
+            {
+                "max_alpha": {"_type": "uniform", "_value": [0, 1]}
+            }
+        ]
+    }
 }

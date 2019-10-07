@@ -231,7 +231,6 @@ def test_all():
 
 
 if __name__ == '__main__':
-
     #test_random_rotate_crop()
     #test_random_scale()
     test_all()

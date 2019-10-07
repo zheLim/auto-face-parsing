@@ -82,6 +82,7 @@ class CelebAMaskHQ(object):
     def __len__(self):
         pass
 
+
 def main():
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('--dataset_path', type=str, default='/home/linzhe/data/CelebAMask-HQ')
