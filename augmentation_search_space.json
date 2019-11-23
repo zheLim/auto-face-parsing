@@ -1,7 +1,7 @@
 {
-    "PaddingValue":{"_type":"choice","_value":[0, 128]},
+    "padding_value":{"_type":"choice","_value":[0, 128]},
 
-    "Scale": {
+    "scale": {
         "_type": "choice",
         "_value": [
             {
@@ -15,7 +15,7 @@
     },
 
 
-    "Rotation": {
+    "rotation": {
         "_type": "choice",
         "_value": [
             {
@@ -27,7 +27,7 @@
         ]
     },
 
-    "Crop": {
+    "crop": {
         "_type": "choice",
         "_value": [
             {

@@ -1,3 +1,4 @@
+tensorflow-gpu
 imageio
 imgaug
 json-tricks

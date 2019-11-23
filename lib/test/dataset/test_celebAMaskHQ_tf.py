@@ -46,14 +46,16 @@ def test_random_rotate_crop():
         image_tl_crop, mask_tl_crop = rotate_crop(np.copy(image), np.copy(mask), 0, output_size, 1, 1, (128, 128, 128))
         write_image_mask(image_tl_crop, mask_tl_crop, path_1024+'/tl'+str(idx))
 
-        image_rand_1024, mask_rand_1024 = random_rotate_crop(np.copy(image), np.copy(mask), output_size=output_size, max_angle=max_rot,
-                                         crop_x_ratio=crop_x_ratio, crop_y_ratio=crop_y_ratio)
+        image_rand_1024, mask_rand_1024 = \
+            random_rotate_crop(np.copy(image), np.copy(mask), output_size=output_size,
+                               max_angle=max_rot, crop_x_ratio=crop_x_ratio, crop_y_ratio=crop_y_ratio)
         write_image_mask(image_rand_1024, mask_rand_1024, path_1024+'/random' + str(idx))
 
         image = cv2.resize(image, (512, 512))
         mask = cv2.resize(mask, (512, 512), interpolation=cv2.INTER_NEAREST)
 
         path_512 = '/home/linzhe/project/auto-face-parsing/temp/512'
+
         if not os.path.exists(path_512):
             os.makedirs(path_512)
         image_center_crop, mask_center_crop = rotate_crop(np.copy(image), np.copy(mask), 0, output_size, 0.5, 0.5, (128, 128, 128))

@@ -33,7 +33,7 @@ def get_augmentation(params):
     :return:
     """
     padding_value = params['PaddingValue']
-    output_size = params['output_size']
+    output_size = params['OutputSize']
 
     scale_params = params['Scale']
     if 'disable' in scale_params:
@@ -62,10 +62,9 @@ def get_augmentation(params):
 
     augmentation = []
     for aug_type, aug_parameters in params.items():
-        if 'disable' in aug_parameters:
-            pass
-        elif aug_type in ['Scale', 'Rotation', 'Crop', 'output_size', 'PaddingValue']:
-            pass
+
+        if aug_type in ['Scale', 'Rotation', 'Crop', 'OutputSize', 'PaddingValue'] or 'disable' in aug_parameters:
+            continue
         elif aug_type == "Shear":
             angle = aug_parameters['angle']
             augmentation.append(iaa.Affine(shear=(-90 * angle, 90 * angle), cval=padding_value[0]))
@@ -146,6 +145,7 @@ def get_augmentation(params):
             mask = segmap.get_arr_int()
         image, mask = random_rotate_crop_fn(image, mask)
         return image, mask
+
     return preprocessing
 
 
@@ -212,7 +212,7 @@ def rotate_crop(image, mask, angle, output_size, crop_x_ratio, crop_y_ratio, pad
     image_crop = rotated_image[max(0, crop_y):crop_y+out_h, max(0, crop_x):crop_x+out_w]
     mask_crop = rotated_mask[max(0, crop_y):crop_y+out_h, max(0, crop_x):crop_x+out_w]
 
-    image_pad = np.pad(image_crop, [[pad_top, pad_bottom], [pad_left, pad_right], [0,0]], mode='constant', constant_values=padding_value[0])
+    image_pad = np.pad(image_crop, [[pad_top, pad_bottom], [pad_left, pad_right], [0,0]], mode='constant', constant_values=padding_value)
     mask_pad = np.pad(mask_crop, [[pad_top, pad_bottom], [pad_left, pad_right]], mode='constant', constant_values=0)
 
     return image_pad, mask_pad
@@ -232,7 +232,7 @@ def random_rotate_crop(image, mask, output_size, max_angle=None, crop_x_ratio=No
     """
     angle = 0
     if max_angle is not None:
-        angle = np.random.uniform(0, max_angle) * 180 - 180 / 2
+        angle = np.random.uniform(-max_angle, max_angle) * 90
 
     if crop_x_ratio is not None:
         crop_x_ratio = crop_x_ratio / 2
@@ -249,7 +249,7 @@ def random_rotate_crop(image, mask, output_size, max_angle=None, crop_x_ratio=No
     return crop_img, crop_mask
 
 
-def get_tf_dataset(tf_folder, policy, batch_size=64):
+def get_tf_dataset(tf_folder, policy, batch_size=64, shuffle=False):
     tf_record_files = [os.path.join(tf_folder, fname) for fname in os.listdir(tf_folder)]
     dataset = tf.data.TFRecordDataset(filenames=[tf_record_files])
     dataset = dataset.map(parse_example)
@@ -259,7 +259,11 @@ def get_tf_dataset(tf_folder, policy, batch_size=64):
         image, mask = tf.py_function(preprocess_fn, [image, mask], [tf.uint8, tf.uint8])
         return image, mask
     dataset = dataset.map(tf_preprocessing, tf.data.experimental.AUTOTUNE)
-    return dataset.repeat().batch(batch_size)
+    if shuffle:
+        dataset = dataset.shuffle(1000)
+    dataset = dataset.batch(batch_size)
+    dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+    return dataset
 
 
 if __name__ == '__main__':
