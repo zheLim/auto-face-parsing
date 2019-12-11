@@ -2,7 +2,9 @@ import cv2
 import tensorflow as tf
 import tensorboard
 import os
+import yaml
 from lib.model.unet import Unet
+from lib.model.seg_hrnet import HighResolutionNet
 from lib.dataset.celebAMaskHQ_tf import get_tf_dataset
 from lib.loss.focal_loss import FocalLoss, OhemLoss
 from lib.utils.visualization import visual_image_and_segmentation
@@ -15,20 +17,25 @@ def main(params):
         if not os.path.exists(this_dir):
             os.makedirs(this_dir)
 
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    for gpu in gpus:
+        tf.config.experimental.set_memory_growth(gpu, True)
     n_classes = 19
-    model = Unet(n_classes)
+    with open('config/hrnet.yaml') as f:
+        config_dict = yaml.load(f)
+    model = HighResolutionNet(config_dict['MODEL'])
 
-    tf_folder = '/workspace/data/linzhe/dataset/celebAMask-HQ-tfrecord/train/tfrecord/'
+    tf_folder = '/workspace/cpfs-data/dataset/celebAMask-HQ-tfrecord/train/tfrecord/'
     train_policy = {'OutputSize': (256, 256), 'Scale': {'disable': True},
                     'Rotation': {'disable': True}, 'Crop': {'disable': True}, 'PaddingValue': 0}
-    train_dataset = get_tf_dataset(tf_folder, train_policy, shuffle=True)
+    train_dataset = get_tf_dataset(tf_folder, train_policy, shuffle=True, batch_size=16)
     valid_policy = {'OutputSize': (256, 256), 'Scale': {'disable': True},
                     'Rotation': {'disable': True}, 'Crop': {'disable': True}, 'PaddingValue': 0}
-    valid_dataset = get_tf_dataset(tf_folder, valid_policy, shuffle=False, batch_size=64)
+    valid_dataset = get_tf_dataset(tf_folder, valid_policy, shuffle=False, batch_size=16)
 
     #loss_scce = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True, name='sparse_categorical_crossentropy')
     #loss_focal = FocalLoss(n_classes, epsilon=1e-7, gamma=2.0, ohem_thresh=5, min_batch_size=16)
-    ohem_loss = OhemLoss(n_classes, ohem_thresh=0.95, batch_size=64, width=256, min_keep=None, epsilon=1e-7, gamma=2.0)
+    ohem_loss = OhemLoss(n_classes, ohem_thresh=0.95, batch_size=16, width=256, min_keep=None, epsilon=1e-7, gamma=2.0)
     metric_mean_iou = tf.keras.metrics.MeanIoU(num_classes=n_classes)
 
     optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)

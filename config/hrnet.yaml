@@ -1,0 +1,48 @@
+MODEL:
+  NAME: seg_hrnet
+  BN_MOMENTUM: 0.01
+  FINAL_CONV_KERNEL: 1
+  NUM_CLASSES: 19
+  STAGE0:
+    NUM_HR_BLOCKS: 1
+    NUM_BRANCHES: 1
+    BLOCK: BOTTLENECK
+    NUM_BLOCKS:
+    - 2
+    CHANNEL_LIST:
+    - 64
+  STAGE1:
+    NUM_HR_BLOCKS: 1
+    BLOCK: BASIC
+    NUM_BLOCKS:
+      - 2
+      - 2
+    CHANNEL_LIST:
+    - 18
+    - 36
+  STAGE2:
+    NUM_HR_BLOCKS: 3
+    NUM_BRANCHES: 3
+    BLOCK: BASIC
+    NUM_BLOCKS:
+    - 2
+    - 2
+    - 2
+    CHANNEL_LIST:
+    - 18
+    - 36
+    - 72
+  STAGE3:
+    NUM_HR_BLOCKS: 2
+    NUM_BRANCHES: 4
+    BLOCK: BASIC
+    NUM_BLOCKS:
+    - 2
+    - 2
+    - 2
+    - 2
+    CHANNEL_LIST:
+    - 18
+    - 36
+    - 72
+    - 144
