@@ -8,7 +8,7 @@ import time
 import tensorflow as tf
 import nni
 from lib.model.unet import Unet
-from lib.dataset.celebAMaskHQ_tf import get_tf_dataset
+from lib.dataset.preprocess import get_tf_dataset
 
 FLAGS = None
 

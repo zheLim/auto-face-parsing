@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-from lib.loss.focal_loss import FocalLoss
+from lib.loss.loss import FocalLoss
 
 
 def test_focal_loss():

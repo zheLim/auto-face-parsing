@@ -136,8 +136,6 @@ def get_augmentation(params):
         iaa_aug = None
 
     def preprocessing(image, mask):
-        image = image.numpy()
-        mask = mask.numpy()
         image, mask = random_scale_fn(image, mask)
         if iaa_aug is not None:
             image, segmap = iaa_aug(image=image, segmentation_maps=SegmentationMapOnImage(mask, shape=mask.shape,
@@ -267,6 +265,4 @@ def get_tf_dataset(tf_folder, policy, batch_size=64, shuffle=False):
 
 
 if __name__ == '__main__':
-    policy = {'scale': (True, 0.5), 'rotation': (True, 1), 'crop': (True, 1), 'gaussian-blur': (True, 1),
-              'shear': (True, 1), 'rotation': (True, 1), 'rotation': (True, 1), 'rotation': (True, 1)}
-    get_tf_dataset(tf_folder, policy)
+    pass

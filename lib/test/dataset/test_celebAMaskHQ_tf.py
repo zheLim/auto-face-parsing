@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 import cv2
 import shutil
-from lib.dataset.celebAMaskHQ_tf import get_tf_dataset, random_rotate_crop, rotate_crop, random_scale, parse_example
+from lib.dataset.preprocess import get_tf_dataset, random_rotate_crop, rotate_crop, random_scale, parse_example
 from lib.utils.visualization import mask_coloring
 
 

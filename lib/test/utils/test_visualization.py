@@ -1,6 +1,6 @@
 import cv2
 import os
-from lib.dataset.celebAMaskHQ_tf import get_tf_dataset
+from lib.dataset.preprocess import get_tf_dataset
 from lib.model.unet import Unet
 
 from lib.utils.visualization import visual_image_and_segmentation

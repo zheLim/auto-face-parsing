@@ -1,5 +1,4 @@
 import numpy as np
-import tensorflow as tf
 import cv2
 
 part_colors = [[0, 0, 0], [255, 85, 0], [255, 170, 0],
@@ -14,7 +13,7 @@ part_colors = [[0, 0, 0], [255, 85, 0], [255, 170, 0],
 
 
 def mask_coloring(mask):
-    mask_colored = np.zeros_like(mask)
+    mask_colored = np.zeros_like(mask, np.uint8)
     if len(mask_colored.shape) == 2:
         mask_colored = mask_colored[:, :, np.newaxis]
     mask_colored = np.tile(mask_colored, [1, 1, 3])
@@ -26,9 +25,11 @@ def mask_coloring(mask):
 
 def visual_image_and_segmentation(batch_x, batch_mask, batch_pred_mask):
     if not isinstance(batch_x, np.ndarray):
-        batch_x = batch_x.numpy()
-        batch_mask = batch_mask.numpy()
-        batch_pred_mask = batch_pred_mask.numpy()
+        batch_x = batch_x.cpu().numpy()
+        batch_x = batch_x.transpose((0, 2, 3, 1))
+
+        batch_mask = batch_mask.cpu().numpy()
+        batch_pred_mask = batch_pred_mask.cpu().numpy()
     if batch_pred_mask.dtype != np.uint8:
         batch_pred_mask = batch_pred_mask.astype(np.uint8)
     masks_colored = []
