@@ -11,7 +11,7 @@ from lib.utils.visualization import visual_image_and_segmentation
 
 
 def main(params):
-    save_dir = 'outputs/hrnet'
+    save_dir = 'outputs/hrnet_cce'
     for kind in ['image', 'model', 'log']:
         this_dir = os.path.join(save_dir, kind)
         if not os.path.exists(this_dir):
@@ -41,7 +41,8 @@ def main(params):
 
     #loss_scce = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True, name='sparse_categorical_crossentropy')
     #loss_focal = FocalLoss(n_classes, epsilon=1e-7, gamma=2.0, ohem_thresh=5, min_batch_size=16)
-    ohem_loss = OhemLoss(n_classes, ohem_thresh=0.95, batch_size=16, width=256, min_keep=None, epsilon=1e-7, gamma=2.0)
+    # ohem_loss = OhemLoss(n_classes, ohem_thresh=0.95, batch_size=16, width=256, min_keep=None, epsilon=1e-7, gamma=2.0)
+    loss_cce = torch.nn.CrossEntropyLoss()
 
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     writer = SummaryWriter(f'{save_dir}/log')
@@ -54,7 +55,7 @@ def main(params):
             label = label.cuda()
             iteration += 1
             predict_logits = model(image)
-            loss = ohem_loss(predict_logits, label)
+            loss = loss_cce(predict_logits, label)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
