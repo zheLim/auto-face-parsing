@@ -1,29 +1,9 @@
-import tensorflow as tf
 import os
 import cv2
 import numpy as np
 from imgaug import augmenters as iaa
 from imgaug.augmentables.segmaps import SegmentationMapOnImage
 from functools import partial
-
-image_feature_description = {
-    'height': tf.io.FixedLenFeature([], tf.int64),
-    'width': tf.io.FixedLenFeature([], tf.int64),
-    'depth': tf.io.FixedLenFeature([], tf.int64),
-    'mask_raw': tf.io.FixedLenFeature([], tf.string),
-    'image_raw': tf.io.FixedLenFeature([], tf.string),
-}
-
-
-def _parse_image_function(example_proto):
-    return
-
-
-def parse_example(example_proto):
-    features = tf.io.parse_single_example(example_proto, image_feature_description)
-    image = tf.io.decode_jpeg(features['image_raw'])
-    mask = tf.io.decode_png(features['mask_raw'])
-    return image, mask
 
 
 def get_augmentation(params):
@@ -246,22 +226,6 @@ def random_rotate_crop(image, mask, output_size, max_angle=None, crop_x_ratio=No
 
     return crop_img, crop_mask
 
-
-def get_tf_dataset(tf_folder, policy, batch_size=64, shuffle=False):
-    tf_record_files = [os.path.join(tf_folder, fname) for fname in os.listdir(tf_folder)]
-    dataset = tf.data.TFRecordDataset(filenames=[tf_record_files])
-    dataset = dataset.map(parse_example)
-    preprocess_fn = get_augmentation(policy)
-
-    def tf_preprocessing(image, mask):
-        image, mask = tf.py_function(preprocess_fn, [image, mask], [tf.uint8, tf.uint8])
-        return image, mask
-    dataset = dataset.map(tf_preprocessing, tf.data.experimental.AUTOTUNE)
-    if shuffle:
-        dataset = dataset.shuffle(1000)
-    dataset = dataset.batch(batch_size)
-    dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-    return dataset
 
 
 if __name__ == '__main__':

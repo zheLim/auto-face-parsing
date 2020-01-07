@@ -1,4 +1,5 @@
 MODEL:
+  IS_CONCAT: True
   NAME: seg_hrnet
   BN_MOMENTUM: 0.01
   FINAL_CONV_KERNEL: 1

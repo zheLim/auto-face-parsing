@@ -1,7 +1,9 @@
 import cv2
 import os
 import yaml
+import numpy as np
 import torch
+from argparse import ArgumentParser
 from torch.utils.tensorboard import SummaryWriter
 from lib.model.seg_hrnet import HighResolutionNet
 from lib.dataset.dataset import HelenDataset
@@ -11,15 +13,19 @@ from lib.utils.visualization import visual_image_and_segmentation
 
 
 def main(params):
-    save_dir = 'outputs/hrnet_cce'
+    parser = ArgumentParser()
+    parser.add_argument('--config', type=str)
+    n_classes = 19
+    config_file = 'config/hrnet.yaml'
+    with open(config_file) as f:
+        config_dict = yaml.load(f)
+
+    save_dir = 'outputs/' + config_file.split('/')[1].split('.')[0]
     for kind in ['image', 'model', 'log']:
         this_dir = os.path.join(save_dir, kind)
         if not os.path.exists(this_dir):
             os.makedirs(this_dir)
 
-    n_classes = 19
-    with open('config/hrnet.yaml') as f:
-        config_dict = yaml.load(f)
     model = HighResolutionNet(config_dict['MODEL'])
 
     train_policy = {'OutputSize': (256, 256), 'Scale': {'disable': True},
@@ -68,6 +74,7 @@ def main(params):
 
             if iteration % 1000 == 0:
                 model.eval()
+                iou_valid = []
                 with torch.no_grad():
                     for (x_batch_valid, y_batch_valid) in valid_loader:
                         x_batch_valid = x_batch_valid.cuda()
@@ -75,17 +82,16 @@ def main(params):
                         predict_logits = model(x_batch_valid)
                         predict_mask = torch.argmax(predict_logits, dim=1)
                         iou_res = iou(y_batch_valid, predict_mask)
+                        iou_valid.append(iou_res.item())
                     vis_img_valid = visual_image_and_segmentation(x_batch_valid, y_batch_valid, predict_mask)
                     cv2.imwrite(f'{save_dir}/image/valid_{iteration}.jpg', vis_img_valid)
 
-                    print('Validation acc : %s' % (iou_res.item(),))
-                    writer.add_scalar('Validation accuracy', iou_res.item(), iteration)
+                    print('Validation acc : %s' % (np.mean(iou_valid),))
+                    writer.add_scalar('Validation accuracy', np.mean(iou_valid), iteration)
                     writer.flush()
                     # Reset training metrics at the end of each epoch
                     torch.save(model.state_dict(), f'{save_dir}/model/{iteration}')
                 model.train()
-
-
 
 
 if __name__ == '__main__':

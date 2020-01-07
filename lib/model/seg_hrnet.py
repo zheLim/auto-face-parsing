@@ -14,6 +14,8 @@ class HighResolutionNet(nn.Module):
         super(HighResolutionNet, self).__init__()
 
         bn_momentum = model_config['BN_MOMENTUM']
+        self.is_concat = model_config['IS_CONCAT']
+
         self.first_conv = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(64, momentum=bn_momentum),
@@ -37,12 +39,16 @@ class HighResolutionNet(nn.Module):
         s3_cfg = model_config['STAGE3']
         self.stage3 = Stage(s2_cfg['CHANNEL_LIST'], s3_cfg['CHANNEL_LIST'], s3_cfg['NUM_HR_BLOCKS'],
                             s3_cfg['NUM_BLOCKS'], blocks_dict[s3_cfg['BLOCK']], bn_momentum)
+        if self.is_concat:
+            last_in_chs = sum(s3_cfg['CHANNEL_LIST'])
+        else:
+            last_in_chs = s3_cfg['CHANNEL_LIST'][0]
 
         self.out_layer = nn.Sequential(
-            nn.Conv2d(in_channels=sum(s3_cfg['CHANNEL_LIST']), out_channels=sum(s3_cfg['CHANNEL_LIST']), kernel_size=1,
+            nn.Conv2d(in_channels=last_in_chs, out_channels=last_in_chs, kernel_size=1,
                       stride=1, bias=False),
-            nn.BatchNorm2d(sum(s3_cfg['CHANNEL_LIST']), momentum=bn_momentum), nn.ReLU(),
-            nn.Conv2d(in_channels=sum(s3_cfg['CHANNEL_LIST']), out_channels=model_config['NUM_CLASSES'], kernel_size=1,
+            nn.BatchNorm2d(last_in_chs, momentum=bn_momentum), nn.ReLU(),
+            nn.Conv2d(in_channels=last_in_chs, out_channels=model_config['NUM_CLASSES'], kernel_size=1,
                       padding=0)
         )
 
@@ -57,12 +63,15 @@ class HighResolutionNet(nn.Module):
         im_h = images.shape[2]
         im_w = images.shape[3]
 
-        feat0 = nn.functional.interpolate(out[0], size=(im_h, im_w))
-        feat1 = nn.functional.interpolate(out[1], size=(im_h, im_w))
-        feat2 = nn.functional.interpolate(out[2], size=(im_h, im_w))
-        feat3 = nn.functional.interpolate(out[3], size=(im_h, im_w))
-
-        mask = self.out_layer(torch.cat((feat0, feat1, feat2, feat3), axis=1))
+        feat0 = nn.functional.interpolate(out[0], size=(im_h, im_w), mode='bilinear')
+        if self.is_concat:
+            feat1 = nn.functional.interpolate(out[1], size=(im_h, im_w), mode='bilinear')
+            feat2 = nn.functional.interpolate(out[2], size=(im_h, im_w), mode='bilinear')
+            feat3 = nn.functional.interpolate(out[3], size=(im_h, im_w), mode='bilinear')
+            feature = torch.cat([feat0, feat1, feat2, feat3], dim=1)
+        else:
+            feature = feat0
+        mask = self.out_layer(feature)
         return mask
 
 
@@ -71,7 +80,7 @@ if __name__ == '__main__':
     import os
     import numpy as np
     os.chdir('../..')
-    with open('config/hrnet.yaml') as f:
+    with open('config/hrnet_noconcat.yaml') as f:
         config_dict = yaml.load(f)
 
     hr_net = HighResolutionNet(config_dict['MODEL'])
