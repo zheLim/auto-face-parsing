@@ -29,9 +29,11 @@ def main(params):
     model = HighResolutionNet(config_dict['MODEL'])
 
     train_policy = {'OutputSize': (256, 256), 'Scale': {'disable': True},
-                    'Rotation': {'disable': True}, 'Crop': {'disable': True}, 'PaddingValue': 0}
-    train_dataset = HelenDataset('/home/administrator/dataset/helenstar_release',
-                              train_policy, train=True)
+                    'Rotation': {'disable': True}, 'Crop': {'disable': True},
+                    'PaddingValue': 0}
+    train_dataset = HelenDataset(
+        '/home/administrator/dataset/helenstar_release',
+        train_policy, train=True)
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=8,
                                                shuffle=True, pin_memory=True,
                                                drop_last=True, num_workers=8)
@@ -40,12 +42,14 @@ def main(params):
                     'PaddingValue': 0}
     valid_dataset = HelenDataset(
         '/home/administrator/dataset/helenstar_release',
-        valid_policy, train=False)
-    valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=8,
-                                               shuffle=False, pin_memory=True,
-                                               drop_last=False, num_workers=8)
+        valid_policy, train=False
+    )
+    valid_loader = torch.utils.data.DataLoader(
+        valid_dataset, batch_size=8, shuffle=False, pin_memory=True,
+        drop_last=False, num_workers=8
+    )
 
-    #loss_scce = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True, name='sparse_categorical_crossentropy')
+    #  loss_scce = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True, name='sparse_categorical_crossentropy')
     #loss_focal = FocalLoss(n_classes, epsilon=1e-7, gamma=2.0, ohem_thresh=5, min_batch_size=16)
     # ohem_loss = OhemLoss(n_classes, ohem_thresh=0.95, batch_size=16, width=256, min_keep=None, epsilon=1e-7, gamma=2.0)
     loss_cce = torch.nn.CrossEntropyLoss()
