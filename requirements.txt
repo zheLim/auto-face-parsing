@@ -1,4 +1,4 @@
-tensorflow-gpu
+torch
 imageio
 imgaug
 json-tricks
@@ -11,5 +11,4 @@ scikit-image
 scikit-learn
 scipy
 simplejson
-tensorflow-gpu
 tqdm

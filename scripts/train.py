@@ -3,6 +3,7 @@ import os
 import yaml
 import numpy as np
 import torch
+import os
 from argparse import ArgumentParser
 from torch.utils.tensorboard import SummaryWriter
 from lib.model.seg_hrnet import HighResolutionNet
@@ -13,8 +14,6 @@ from lib.utils.visualization import visual_image_and_segmentation
 
 
 def main(params):
-    parser = ArgumentParser()
-    parser.add_argument('--config', type=str)
     n_classes = 19
     config_file = 'config/hrnet.yaml'
     with open(config_file) as f:
@@ -99,5 +98,6 @@ def main(params):
 
 
 if __name__ == '__main__':
+    os.chdir('..')
     params = None
     main(params)
