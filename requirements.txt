@@ -6,7 +6,7 @@ matplotlib
 nni
 numpy
 opencv-python
-Pillow==6.2.0
+Pillow==9.3.0
 scikit-image
 scikit-learn
 scipy
